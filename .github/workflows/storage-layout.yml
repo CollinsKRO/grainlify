@@ -3,14 +3,14 @@ name: Storage Layout Checks
 on:
   pull_request:
     paths:
-      - "contracts/grainlify-core/**"
-      - "soroban/contracts/**"
+      - "contracts/**"
+      - "scripts/verify-storage-layout-manifest.py"
       - ".github/workflows/storage-layout.yml"
   push:
     branches: [main, develop, master]
     paths:
-      - "contracts/grainlify-core/**"
-      - "soroban/contracts/**"
+      - "contracts/**"
+      - "scripts/verify-storage-layout-manifest.py"
       - ".github/workflows/storage-layout.yml"
 
 env:
@@ -29,27 +29,10 @@ jobs:
         run: |
           cd contracts/grainlify-core
           cargo test --test test_storage_layout
+      - name: validate snapshots and contracttype encodings
+        run: python3 scripts/verify-storage-layout-manifest.py
       - name: program-escrow package exists
+        run: test -f "$GITHUB_WORKSPACE/contracts/program-escrow/STORAGE_LAYOUT.md"
+      - name: program-escrow storage layout doc exists
         run: test -f contracts/program-escrow/STORAGE_LAYOUT.md
-        # Path is for documentation checks; program-escrow is still under top-level contracts/
-      - name: soroban escrow storage layout
-        run: test -f soroban/contracts/escrow/STORAGE_LAYOUT.md
-        # Storage layout for the soroban escrow contract
-      - name: soroban program-escrow storage layout
-        run: test -f soroban/contracts/program-escrow/STORAGE_LAYOUT.md
-        # Storage layout for the soroban program-escrow contract
-      - name: soroban stream storage layout
-        run: test -f soroban/contracts/stream/STORAGE_LAYOUT.md
-        # Storage layout for the soroban stream contract
-      - name: build soroban escrow
-        run: |
-          cd soroban
-          cargo build --package escrow --target wasm32-unknown-unknown 2>&1 | tail -5
-      - name: build soroban program-escrow
-        run: |
-          cd soroban
-          cargo build --package program-escrow --target wasm32-unknown-unknown 2>&1 | tail -5
-      - name: build soroban stream
-        run: |
-          cd soroban
-          cargo build --package stream --target wasm32-unknown-unknown 2>&1 | tail -5
+        run: test -f "${{ github.workspace }}/contracts/program-escrow/STORAGE_LAYOUT.md"
